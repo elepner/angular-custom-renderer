@@ -1,12 +1,27 @@
 import { Renderer2, RendererStyleFlags2 } from '@angular/core';
+import { Project, Layer } from 'paper';
 
 export class CustomRenderer extends Renderer2 {
 
   static counter = 0;
   readonly id = CustomRenderer.counter++;
 
-  constructor(private readonly domRenderer: Renderer2, private readonly tag: string) {
+  tag: string;
+
+
+  proj?: paper.Project;
+
+  constructor(private readonly domRenderer: Renderer2, private readonly element: any, private readonly type: any) {
+
     super();
+    this.log('Creating new Renderer', element, type);
+    this.tag = element?.tagName;
+
+    if (this.tag === 'RO-CANVAS') {
+      this.proj = new Project(document.createElement('canvas'));
+      (window as any)['paperProj'] = this.proj;
+    }
+
   }
 
   get data(): { [key: string]: any } {
@@ -20,11 +35,17 @@ export class CustomRenderer extends Renderer2 {
   createElement(name: string, namespace?: string | null | undefined) {
 
     const result = this.domRenderer.createElement(name, namespace);
+
+    if (name === 'ro-canvas-layer') {
+      const layer = new Layer();
+      result.attachedPaperLayer = layer;
+    }
+
     this.log('Calling for createElement method', { name, namespace, result });
     return result
   }
   createComment(value: string) {
-    this.log('Calling for createComment method');
+    this.log(`Calling for createComment method '${value}'`);
     return this.domRenderer.createComment(value);
   }
   createText(value: string) {
@@ -33,6 +54,9 @@ export class CustomRenderer extends Renderer2 {
   }
   appendChild(parent: any, newChild: any): void {
     this.log('Calling for appendChild method', { parent, newChild });
+    if (newChild.tagName === 'RO-CANVAS-LAYER') {
+      this.proj!.addLayer(newChild.attachedPaperLayer);
+    }
     return this.domRenderer.appendChild(parent, newChild);
   }
   insertBefore(parent: any, newChild: any, refChild: any, isMove?: boolean | undefined): void {
