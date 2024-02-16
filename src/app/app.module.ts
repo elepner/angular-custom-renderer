@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
 import { CustomRenderer } from './custom.renderer';
+import { CanvasComponent, CanvasLayerComponent, CircleComponent, CompositeComponent } from './ro-canvas';
 
 @NgModule({
   declarations: [
@@ -10,6 +11,10 @@ import { CustomRenderer } from './custom.renderer';
   ],
   imports: [
     BrowserModule,
+    CanvasComponent,
+    CanvasLayerComponent,
+    CircleComponent,
+    CompositeComponent
   ],
   providers: [],
   bootstrap: [AppComponent]
@@ -24,7 +29,7 @@ export class AppModule {
       //   return new CustomRenderer(oldFn.call(rend, element, type));
       // }
       //console.log(`Creating renderer, type ${tagName}`, element, type);
-      return new CustomRenderer(oldFn.call(rend, element, type));
+      return new CustomRenderer(oldFn.call(rend, element, type), element?.tagName);
       //return oldFn.call(rend, element, type);
     };
   }

@@ -1,88 +1,104 @@
 import { Renderer2, RendererStyleFlags2 } from '@angular/core';
 
 export class CustomRenderer extends Renderer2 {
-  constructor(private readonly domRenderer: Renderer2) {
+
+  static counter = 0;
+  readonly id = CustomRenderer.counter++;
+
+  constructor(private readonly domRenderer: Renderer2, private readonly tag: string) {
     super();
   }
 
   get data(): { [key: string]: any } {
-    console.log('Calling for get method with');
+    this.log('Calling for get method with');
     return this.domRenderer.data;
   }
   destroy(): void {
-    console.log('Calling for destroy method');
+    this.log('Calling for destroy method');
     return this.domRenderer.destroy();
   }
   createElement(name: string, namespace?: string | null | undefined) {
-    console.log('Calling for createElement method', name, namespace);
-    return this.domRenderer.createElement(name, namespace);
+
+    const result = this.domRenderer.createElement(name, namespace);
+    this.log('Calling for createElement method', { name, namespace, result });
+    return result
   }
   createComment(value: string) {
-    console.log('Calling for createComment method');
+    this.log('Calling for createComment method');
     return this.domRenderer.createComment(value);
   }
   createText(value: string) {
-    console.log('Calling for createText method');
+    this.log('Calling for createText method');
     return this.domRenderer.createText(value);
   }
   appendChild(parent: any, newChild: any): void {
-    console.log('Calling for appendChild method', parent, newChild);
+    this.log('Calling for appendChild method', { parent, newChild });
     return this.domRenderer.appendChild(parent, newChild);
   }
   insertBefore(parent: any, newChild: any, refChild: any, isMove?: boolean | undefined): void {
-    console.log('Calling for insertBefore method');
+    this.log('Calling for insertBefore method', parent, newChild, refChild, isMove);
     return this.domRenderer.insertBefore(parent, newChild, refChild, isMove);
   }
   removeChild(parent: any, oldChild: any, isHostElement?: boolean | undefined): void {
-    console.log('Calling for removeChild method');
+    this.log('Calling for removeChild method', parent, oldChild, isHostElement);
     return this.domRenderer.removeChild(parent, oldChild, isHostElement);
   }
   selectRootElement(selectorOrNode: any, preserveContent?: boolean | undefined) {
-    console.log('Calling for selectRootElement method');
+    this.log('Calling for selectRootElement method');
     return this.domRenderer.selectRootElement(selectorOrNode, preserveContent);
   }
   parentNode(node: any) {
-    console.log('Calling for parentNode method');
-    return this.domRenderer.parentNode(node);
+    const result = this.domRenderer.parentNode(node);
+    this.log('Calling for parentNode method', node, 'Result: ', result);
+    return result;
   }
   nextSibling(node: any) {
-    console.log('Calling for nextSibling method');
+    this.log('Calling for nextSibling method');
     return this.domRenderer.nextSibling(node);
   }
   setAttribute(el: any, name: string, value: string, namespace?: string | null | undefined): void {
-    console.log('Calling for setAttribute method');
+    this.log('Calling for setAttribute method', el, name, value, namespace);
     return this.domRenderer.setAttribute(el, name, value, namespace);
   }
   removeAttribute(el: any, name: string, namespace?: string | null | undefined): void {
-    console.log('Calling for removeAttribute method');
+    this.log('Calling for removeAttribute method');
     return this.domRenderer.removeAttribute(el, name, namespace);
   }
   addClass(el: any, name: string): void {
-    console.log('Calling for addClass method');
+    this.log('Calling for addClass method');
     return this.domRenderer.addClass(el, name);
   }
   removeClass(el: any, name: string): void {
-    console.log('Calling for removeClass method');
+    this.log('Calling for removeClass method');
     return this.domRenderer.removeClass(el, name);
   }
   setStyle(el: any, style: string, value: any, flags?: RendererStyleFlags2 | undefined): void {
-    console.log('Calling for setStyle method');
+    this.log('Calling for setStyle method');
     return this.domRenderer.setStyle(el, style, value, flags);
   }
   removeStyle(el: any, style: string, flags?: RendererStyleFlags2 | undefined): void {
-    console.log('Calling for removeStyle method');
+    this.log('Calling for removeStyle method');
     return this.domRenderer.removeStyle(el, style, flags);
   }
   setProperty(el: any, name: string, value: any): void {
-    console.log('Calling for setProperty method');
+    this.log('Calling for setProperty method');
     return this.domRenderer.setProperty(el, name, value);
   }
   setValue(node: any, value: string): void {
-    console.log('Calling for setValue method');
+    this.log('Calling for setValue method', node, value);
     return this.domRenderer.setValue(node, value);
   }
   listen(target: any, eventName: string, callback: (event: any) => boolean | void): () => void {
-    console.log('Calling for listen method with', target, eventName, callback);
+    this.log('Calling for listen method with', target, eventName, callback);
     return this.domRenderer.listen(target, eventName, callback);
+  }
+
+  logResult(f: () => any) {
+    const result = f();
+    return result;
+  }
+
+  private log(...args: any[]) {
+    console.log(`${this.tag}:${this.id},`, ...args);
   }
 }
