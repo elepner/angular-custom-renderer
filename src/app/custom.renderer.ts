@@ -1,5 +1,8 @@
-import { Renderer2, RendererStyleFlags2 } from '@angular/core';
-import { Project, Layer, Group } from 'paper';
+import { Renderer2, RendererStyleFlags2, Signal, effect } from '@angular/core';
+import { Project, Layer, Group, View, Size } from 'paper';
+
+
+import { Observable } from 'rxjs';
 
 
 
@@ -25,6 +28,7 @@ export class CustomRenderer extends Renderer2 {
     if (this.tag === 'RO-CANVAS') {
       const canvas = document.createElement('canvas');
       this.proj = new Project(canvas);
+      this.proj.view.viewSize = new Size(700, 500);
       (window as any)['paperProj'] = this.proj;
       canvas.width = 500;
       canvas.height = 300;
@@ -48,6 +52,7 @@ export class CustomRenderer extends Renderer2 {
   }
 
   readonly elementToPaperItem = new WeakMap<object, paper.Item>();
+  readonly elementToPaperItemSignal = new WeakMap<object, Observable<paper.Item>>();
   createElement(name: string, namespace?: string | null | undefined) {
 
     const result = this.domRenderer.createElement(name, namespace);
@@ -63,6 +68,11 @@ export class CustomRenderer extends Renderer2 {
 
       result.paperItemSetter = (item: paper.Item) => {
         this.elementToPaperItem.set(result, item);
+        // console.log('paper item setter', item);
+      }
+
+      result.paperItemSetterSignal = (item: Observable<paper.Item>) => {
+        this.elementToPaperItemSignal.set(result, item);
         // console.log('paper item setter', item);
       }
     }
@@ -89,9 +99,21 @@ export class CustomRenderer extends Renderer2 {
     this.log('Calling for insertBefore method', { parent, newChild, refChild, isMove });
     if (parent.tagName === 'RO-CANVAS-COMPOSITE') {
 
-      const paperRef = this.elementToPaperItem.get(newChild);
+      //const paperRef = this.elementToPaperItem.get(newChild);
+      const paperRef = this.elementToPaperItemSignal.get(newChild)!;
+      let index: number | null = null;
+      const gr = parent.paperGroup as paper.Group;
+      paperRef.subscribe(obj => {
+        if (index == null) {
+          gr.addChild(obj);
+          index = gr.children.length - 1;
+          console.log('attaching child', { gr, obj });
+        } else {
+          console.log('Replacing child with', { gr, obj });
+          gr.children[index] = obj;
+        }
+      });
 
-      parent.paperGroup.addChild(paperRef);
     }
 
     if (parent.attachedPaperLayer) {

@@ -1,6 +1,7 @@
 import { Path, Layer, Point } from 'paper';
 import { AfterViewInit, Component, ElementRef, Renderer2, RendererFactory2, Signal, ViewChild, computed, effect, input } from '@angular/core';
 import { PaperScopeService } from './paper-scope.service';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 export type Vector = [number, number];
 
@@ -23,7 +24,6 @@ export class CanvasComponent implements AfterViewInit {
 
   }
   ngAfterViewInit(): void {
-    this.project = this.paperSrvc.createProject(this.canvas.nativeElement);
 
   }
 
@@ -48,11 +48,20 @@ export class CircleComponent {
   radius = input(42);
 
   circleRef = new Path.Circle(new Point(this.center()[0], this.center()[1]), this.radius())
+
+  circleRefSignal = computed(() => {
+    const result = new Path.Circle(new Point(this.center()[0], this.center()[1]), this.radius());
+    result.strokeColor = 'black' as any;
+    return result;
+  })
+
   constructor(r: Renderer2, elementRef: ElementRef) {
     console.log('Circle renderer', r);
-    r.data['PaperItem'] = this.circleRef;
-    elementRef.nativeElement.paperItemSetter(this.circleRef);
+
+
+    elementRef.nativeElement.paperItemSetterSignal(toObservable(this.circleRefSignal));
     this.circleRef.strokeColor = 'black' as any
+
   }
 }
 
