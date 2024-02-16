@@ -1,4 +1,4 @@
-import { Path, Layer } from 'paper';
+import { Path, Layer, Point } from 'paper';
 import { AfterViewInit, Component, ElementRef, Renderer2, RendererFactory2, Signal, ViewChild, computed, effect, input } from '@angular/core';
 import { PaperScopeService } from './paper-scope.service';
 
@@ -9,7 +9,6 @@ export type Vector = [number, number];
   standalone: true,
   template: `
     <ng-content></ng-content>
-    <canvas width="500" height="300" #canvas></canvas>
   `,
   selector: 'ro-canvas',
 })
@@ -48,11 +47,13 @@ export class CircleComponent {
   center = input<Vector>([0, 0]);
   radius = input(42);
 
-  circleRef = new Path.Circle({
-    center: this.center(),
-    radius: this.radius()
-  })
-  constructor() { }
+  circleRef = new Path.Circle(new Point(this.center()[0], this.center()[1]), this.radius())
+  constructor(r: Renderer2, elementRef: ElementRef) {
+    console.log('Circle renderer', r);
+    r.data['PaperItem'] = this.circleRef;
+    elementRef.nativeElement.paperItemSetter(this.circleRef);
+    this.circleRef.strokeColor = 'black' as any
+  }
 }
 
 
@@ -62,7 +63,7 @@ export class CircleComponent {
   imports: [CircleComponent],
   template: `
     @for (c of circles(); track $index) {
-      <ro-canvas-circle [center]="c"></ro-canvas-circle>
+      <ro-canvas-circle [center]="c" [radius]="32"></ro-canvas-circle>
     }
   `
 })
