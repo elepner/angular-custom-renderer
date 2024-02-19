@@ -2,6 +2,7 @@ import { Path, Layer, Point } from 'paper';
 import { AfterViewInit, Component, ElementRef, Renderer2, RendererFactory2, Signal, ViewChild, computed, effect, input } from '@angular/core';
 import { PaperScopeService } from './paper-scope.service';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { ItemRenderer } from './canvas.renderer';
 
 export type Vector = [number, number];
 
@@ -9,21 +10,14 @@ export type Vector = [number, number];
 @Component({
   standalone: true,
   template: `
+    <canvas #canvas></canvas>
     <ng-content></ng-content>
   `,
   selector: 'ro-canvas',
 })
-export class CanvasComponent implements AfterViewInit {
-  @ViewChild('canvas')
-  canvas!: ElementRef<HTMLCanvasElement>;
-  project!: paper.Project;
+export class CanvasComponent {
 
-  isInitialized = false;
-
-  constructor(private paperSrvc: PaperScopeService) {
-
-  }
-  ngAfterViewInit(): void {
+  constructor() {
 
   }
 
@@ -47,7 +41,8 @@ export class CircleComponent {
   center = input<Vector>([0, 0]);
   radius = input(42);
 
-  circleRef = new Path.Circle(new Point(this.center()[0], this.center()[1]), this.radius())
+
+  circleRef = new Path.Circle(new Point(this.center()[0], this.center()[1]), this.radius());
 
   circleRefSignal = computed(() => {
     const result = new Path.Circle(new Point(this.center()[0], this.center()[1]), this.radius());
@@ -55,12 +50,21 @@ export class CircleComponent {
     return result;
   })
 
-  constructor(r: Renderer2, elementRef: ElementRef) {
+  constructor(r: Renderer2) {
+
     console.log('Circle renderer', r);
 
+    if (r instanceof ItemRenderer) {
+      r.updateItem(this.circleRef);
+      effect(() => {
+        this.circleRefSignal().strokeColor = 'black' as any;
 
-    elementRef.nativeElement.paperItemSetterSignal(toObservable(this.circleRefSignal));
-    this.circleRef.strokeColor = 'black' as any
+        this.circleRef.replaceWith(this.circleRefSignal());
+      })
+    } else {
+      throw new Error('It is not circle renderer');
+    }
+
 
   }
 }

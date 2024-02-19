@@ -11,15 +11,13 @@ import { Vector } from './ro-canvas';
     <button (click)="remove()">Remove</button>
     <button (click)="swap()">Swap</button>
     <button>Hide All Even</button>
-
     {{centers() | json}}
 
-    <ro-canvas>
+    <ro-canvas style="display: block;">
       <ro-canvas-layer>
         @for (c of centers(); track c.id) {
           <ro-canvas-composite [center]="c.c"></ro-canvas-composite>
         }
-        
       </ro-canvas-layer>
     </ro-canvas>
   `,
@@ -39,7 +37,7 @@ export class AppComponent {
     this.centers.update((v) => {
       const last = v.at(-1);
       return [...v, {
-        c: [last?.c[0] ?? 42 + 1, last?.c[1] ?? 69 + 1],
+        c: [last?.c[0] ?? 42 + 1, last?.c[1] ?? 69 + 1].map(x => x + 10) as any,
         id: this.counter++
       }]
     })

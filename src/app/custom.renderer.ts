@@ -1,45 +1,20 @@
 import { Renderer2, RendererStyleFlags2, Signal, effect } from '@angular/core';
-import { Project, Layer, Group, View, Size } from 'paper';
 
 
-import { Observable } from 'rxjs';
+export class CustomRenderer<T> extends Renderer2 {
 
-
-
-export class CustomRenderer extends Renderer2 {
+  protected paperElementRef!: T;
 
   static counter = 0;
   readonly id = CustomRenderer.counter++;
 
-  tag: string;
+  protected tag: string;
 
-
-  proj?: paper.Project;
-  group?: paper.Group;
-  layer?: paper.Layer;
-
-  constructor(private readonly domRenderer: Renderer2, private readonly element: any, private readonly type: any) {
+  constructor(private readonly domRenderer: Renderer2, protected readonly element: any, private readonly type: any) {
 
     super();
     this.tag = element?.tagName ?? '';
-    this.log('Creating new Renderer', element, type);
-
-
-    if (this.tag === 'RO-CANVAS') {
-      const canvas = document.createElement('canvas');
-      this.proj = new Project(canvas);
-      this.proj.view.viewSize = new Size(700, 500);
-      (window as any)['paperProj'] = this.proj;
-      canvas.width = 500;
-      canvas.height = 300;
-      element.appendChild(canvas);
-    }
-
-    else if (this.tag.startsWith('RO-CANVAS-')) {
-      this.group = new Group();
-      this.element.paperGroup = this.group;
-    }
-
+    this.log('Creating renderer')
   }
 
   get data(): { [key: string]: any } {
@@ -51,32 +26,9 @@ export class CustomRenderer extends Renderer2 {
     return this.domRenderer.destroy();
   }
 
-  readonly elementToPaperItem = new WeakMap<object, paper.Item>();
-  readonly elementToPaperItemSignal = new WeakMap<object, Observable<paper.Item>>();
   createElement(name: string, namespace?: string | null | undefined) {
 
     const result = this.domRenderer.createElement(name, namespace);
-
-    if (name === 'ro-canvas-layer') {
-      const layer = new Layer();
-      result.attachedPaperLayer = layer;
-    }
-
-    if (name === 'ro-canvas-circle') {
-      console.log('Creating canvas circle')
-
-
-      result.paperItemSetter = (item: paper.Item) => {
-        this.elementToPaperItem.set(result, item);
-        // console.log('paper item setter', item);
-      }
-
-      result.paperItemSetterSignal = (item: Observable<paper.Item>) => {
-        this.elementToPaperItemSignal.set(result, item);
-        // console.log('paper item setter', item);
-      }
-    }
-
     this.log('Calling for createElement method', { name, namespace, result });
     return result
   }
@@ -90,35 +42,36 @@ export class CustomRenderer extends Renderer2 {
   }
   appendChild(parent: any, newChild: any): void {
     this.log('Calling for appendChild method', { parent, newChild });
-    if (newChild.tagName === 'RO-CANVAS-LAYER') {
-      this.proj!.addLayer(newChild.attachedPaperLayer);
-    }
     return this.domRenderer.appendChild(parent, newChild);
   }
   insertBefore(parent: any, newChild: any, refChild: any, isMove?: boolean | undefined): void {
     this.log('Calling for insertBefore method', { parent, newChild, refChild, isMove });
-    if (parent.tagName === 'RO-CANVAS-COMPOSITE') {
 
-      //const paperRef = this.elementToPaperItem.get(newChild);
-      const paperRef = this.elementToPaperItemSignal.get(newChild)!;
-      let index: number | null = null;
-      const gr = parent.paperGroup as paper.Group;
-      paperRef.subscribe(obj => {
-        if (index == null) {
-          gr.addChild(obj);
-          index = gr.children.length - 1;
-          console.log('attaching child', { gr, obj });
-        } else {
-          console.log('Replacing child with', { gr, obj });
-          gr.children[index] = obj;
+    if (!this.tag.startsWith('RO-CANVAS')) {
+      const parentTagName: string = parent.tagName;
+      if (parentTagName.startsWith('RO-CANVAS')) {
+        this.log('Strange insert before', { parent, newChild, refChild })
+        parent.attachedPaperElement.renderer.insertBefore(parent, newChild, refChild, isMove);
+        return;
+      }
+    } else {
+      let current = refChild;
+      const parentAttachedPaperElement = parent.attachedPaperElement as AttachedPaperElement<any>
+      while (true) {
+        if (!current) {
+          if (!newChild.attachedPaperElement) {
+            debugger;
+          }
+          parentAttachedPaperElement.renderer.insertPaperElement(parent.attachedPaperElement, newChild.attachedPaperElement, null);
+          break;
         }
-      });
-
-    }
-
-    if (parent.attachedPaperLayer) {
-      const l = parent.attachedPaperLayer as paper.Layer;
-      l.addChild(newChild.paperGroup)
+        if (current.attachedPaperElement) {
+          parentAttachedPaperElement.renderer.insertPaperElement(parent.attachedPaperElement, newChild.attachedPaperElement, current.attachedPaperElement);
+          break;
+        }
+        current = current.previousSibling;
+      }
+      //parent.attachedPaperElement.renderer.insertBefore(parent, newChild, refChild, isMove);
     }
 
     return this.domRenderer.insertBefore(parent, newChild, refChild, isMove);
@@ -182,7 +135,25 @@ export class CustomRenderer extends Renderer2 {
     return result;
   }
 
+  insertPaperElement(parent: AttachedPaperElement<T>, newChild: AttachedPaperElement<any>, refChild: AttachedPaperElement<any> | null) {
+    throw new Error('Implement me');
+  }
+
   private log(...args: any[]) {
     console.log(`${this.tag}:${this.id},`, ...args);
   }
+
+  setPaperElementRef(el: T, htmlNode: any) {
+    this.paperElementRef = el;
+    htmlNode.attachedPaperElement = {
+      element: el,
+      renderer: this
+    };
+  }
+
+}
+
+export interface AttachedPaperElement<T> {
+  element: paper.Item;
+  renderer: CustomRenderer<T>;
 }
