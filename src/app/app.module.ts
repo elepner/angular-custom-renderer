@@ -6,6 +6,7 @@ import { CustomRenderer } from './custom.renderer';
 import { CanvasComponent, CanvasLayerComponent, CircleComponent, CompositeComponent } from './ro-canvas';
 import { PaperScopeService } from './paper-scope.service';
 import { CanvasRenderer, GroupRenderer, ItemRenderer } from './canvas.renderer';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,8 @@ import { CanvasRenderer, GroupRenderer, ItemRenderer } from './canvas.renderer';
     CanvasComponent,
     CanvasLayerComponent,
     CircleComponent,
-    CompositeComponent
+    CompositeComponent,
+    FormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

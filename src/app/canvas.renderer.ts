@@ -52,11 +52,14 @@ export class CanvasRenderer extends CustomRenderer<paper.Project> {
         } else {
           throw new Error('Layer has non layer refChild')
         }
-
       }
     } else {
       throw new Error('Cannot attach non layer element to project');
     }
+  }
+
+  override destroy(): void {
+    this.paperElementRef.remove();
   }
 
 }
@@ -86,6 +89,10 @@ export class GroupRenderer extends CustomRenderer<paper.Group> {
       newChild.element.insertBelow(refChild.element);
     }
   }
+
+  override destroy() {
+    this.paperElementRef.remove();
+  }
 }
 
 export class ItemRenderer extends CustomRenderer<paper.Item> {
@@ -96,6 +103,10 @@ export class ItemRenderer extends CustomRenderer<paper.Item> {
 
   updateItem(item: paper.Item) {
     this.setPaperElementRef(item, this.element);
+  }
+
+  override destroy() {
+    this.paperElementRef.remove();
   }
 }
 

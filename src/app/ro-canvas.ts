@@ -1,4 +1,4 @@
-import { Path, Layer, Point } from 'paper';
+import { Path, Layer, Point, Color } from 'paper';
 import { AfterViewInit, Component, ElementRef, Renderer2, RendererFactory2, Signal, ViewChild, computed, effect, input } from '@angular/core';
 import { PaperScopeService } from './paper-scope.service';
 import { toObservable } from '@angular/core/rxjs-interop';
@@ -41,25 +41,28 @@ export class CircleComponent {
   center = input<Vector>([0, 0]);
   radius = input(42);
 
-
   circleRef = new Path.Circle(new Point(this.center()[0], this.center()[1]), this.radius());
 
   circleRefSignal = computed(() => {
+    console.log('Signal with new R', this.radius());
     const result = new Path.Circle(new Point(this.center()[0], this.center()[1]), this.radius());
-    result.strokeColor = 'black' as any;
+    //result.strokeColor = 'black' as any;
     return result;
   })
 
-  constructor(r: Renderer2) {
+  counter = 0;
 
-    console.log('Circle renderer', r);
+  constructor(r: Renderer2) {
 
     if (r instanceof ItemRenderer) {
       r.updateItem(this.circleRef);
       effect(() => {
-        this.circleRefSignal().strokeColor = 'black' as any;
+        this.counter += 0.01
+        const foo = this.circleRefSignal();
+        foo.strokeColor = new Color(0.5, 0.1, this.counter);
 
-        this.circleRef.replaceWith(this.circleRefSignal());
+        this.circleRef.replaceWith(foo);
+        this.circleRef = foo;
       })
     } else {
       throw new Error('It is not circle renderer');
@@ -76,21 +79,28 @@ export class CircleComponent {
   imports: [CircleComponent],
   template: `
     @for (c of circles(); track $index) {
-      <ro-canvas-circle [center]="c" [radius]="32"></ro-canvas-circle>
+      <ro-canvas-circle [center]="c.c" [radius]="c.r"></ro-canvas-circle>
     }
   `
 })
 export class CompositeComponent {
   center = input<Vector>([0, 0]);
+  radius = input<number>(0);
   deltas = [
     [-10, -10],
     [10, 10]
   ]
 
-  circles: Signal<Vector[]> = computed(() => {
+  circles: Signal<{
+    c: Vector,
+    r: number
+  }[]> = computed(() => {
     return this.deltas.map((d) => {
       const c = this.center();
-      return [c[0] + d[0], c[1] + d[1]];
+      return {
+        c: [c[0] + d[0], c[1] + d[1]],
+        r: this.radius()
+      };
     })
   })
 }

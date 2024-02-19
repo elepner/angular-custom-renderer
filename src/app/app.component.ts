@@ -10,12 +10,14 @@ import { Vector } from './ro-canvas';
     <button (click)="remove()">Remove</button>
     <button (click)="swap()">Swap</button>
     <button>Hide All Even</button>
+    <input type="number" [ngModel]="radius()" (ngModelChange)="radius.set($event)">
     {{centers() | json}}
+
 
     <ro-canvas style="display: block;">
       <ro-canvas-layer>
         @for (c of centers(); track c.id) {
-          <ro-canvas-composite [center]="c.c"></ro-canvas-composite>
+          <ro-canvas-composite [center]="c.c" [radius]="radius()"></ro-canvas-composite>
         }
       </ro-canvas-layer>
     </ro-canvas>
@@ -24,6 +26,7 @@ import { Vector } from './ro-canvas';
 })
 export class AppComponent {
   title = 'angular-custom-renderer';
+  radius = signal<number>(10);
 
   counter = 0;
 
