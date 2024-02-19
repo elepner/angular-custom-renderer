@@ -46,6 +46,7 @@ export class CircleComponent {
   circleRefSignal = computed(() => {
     const result = new Path.Circle(new Point(this.center()[0], this.center()[1]), this.radius());
     result.strokeColor = this.color() as any;
+    result.strokeWidth = 5;
     result.data = {
       color: this.color()
     }

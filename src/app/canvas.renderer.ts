@@ -82,13 +82,19 @@ export class GroupRenderer extends CustomRenderer<paper.Group> {
     return super.insertBefore(parent, newChild, refChild, isMove);
   }
 
-  override insertPaperElement(parent: AttachedPaperElement<paper.Group>, newChild: AttachedPaperElement<any>, refChild: AttachedPaperElement<any> | null): void {
+  override insertPaperElement(parent: AttachedPaperElement<paper.Group>, newChild: AttachedPaperElement<any>, refChild: AttachedPaperElement<any> | null, insertBefore: boolean): void {
     if (refChild == null) {
       this.paperElementRef.addChild(newChild.element);
     } else {
-      newChild.element.insertBelow(refChild.element);
+      if (insertBefore) {
+        newChild.element.insertBelow(refChild.element);
+      } else {
+        newChild.element.insertAbove(refChild.element);
+      }
     }
   }
+
+
 
   override destroy() {
     this.paperElementRef.remove();

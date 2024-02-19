@@ -56,14 +56,15 @@ export class CustomRenderer<T> extends Renderer2 {
       }
     } else {
       let current = refChild;
+      let shouldInsertBefore = !!refChild.attachedPaperElement;
       const parentAttachedPaperElement = parent.attachedPaperElement as AttachedPaperElement<any>
       while (true) {
         if (!current) {
-          parentAttachedPaperElement.renderer.insertPaperElement(parent.attachedPaperElement, newChild.attachedPaperElement, null);
+          parentAttachedPaperElement.renderer.insertPaperElement(parent.attachedPaperElement, newChild.attachedPaperElement, null, false);
           break;
         }
         if (current.attachedPaperElement) {
-          parentAttachedPaperElement.renderer.insertPaperElement(parent.attachedPaperElement, newChild.attachedPaperElement, current.attachedPaperElement);
+          parentAttachedPaperElement.renderer.insertPaperElement(parent.attachedPaperElement, newChild.attachedPaperElement, current.attachedPaperElement, shouldInsertBefore);
           break;
         }
         current = current.previousSibling;
@@ -135,7 +136,7 @@ export class CustomRenderer<T> extends Renderer2 {
     return result;
   }
 
-  insertPaperElement(parent: AttachedPaperElement<T>, newChild: AttachedPaperElement<any>, refChild: AttachedPaperElement<any> | null) {
+  insertPaperElement(parent: AttachedPaperElement<T>, newChild: AttachedPaperElement<any>, refChild: AttachedPaperElement<any> | null, isBefore: boolean) {
     throw new Error('Implement me');
   }
 

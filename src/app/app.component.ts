@@ -37,11 +37,11 @@ export class AppComponent {
 
   circles = signal<{ id: number, c: Vector, color: string }[]>([{
     id: this.counter++,
-    c: [42, 69],
+    c: [10, 10],
     color: ''
   }, {
     id: this.counter++,
-    c: [50, 10],
+    c: [50, 50],
     color: '#336699'
   }])
 
