@@ -71,7 +71,6 @@ export class CustomRenderer<T> extends Renderer2 {
         }
         current = current.previousSibling;
       }
-      //parent.attachedPaperElement.renderer.insertBefore(parent, newChild, refChild, isMove);
     }
 
     return this.domRenderer.insertBefore(parent, newChild, refChild, isMove);
@@ -139,7 +138,7 @@ export class CustomRenderer<T> extends Renderer2 {
     throw new Error('Implement me');
   }
 
-  private log(...args: any[]) {
+  protected log(...args: any[]) {
     console.log(`${this.tag}:${this.id},`, ...args);
   }
 

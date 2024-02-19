@@ -6,7 +6,6 @@ import { Vector } from './ro-canvas';
   selector: 'app-root',
 
   template: `
-    <h1>Welcome to {{title}}!</h1>
     <button (click)="add()">Add</button>
     <button (click)="remove()">Remove</button>
     <button (click)="swap()">Swap</button>
