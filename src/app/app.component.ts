@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Vector } from './ro-canvas';
 
@@ -9,7 +9,10 @@ import { Vector } from './ro-canvas';
     <button (click)="add()">Add</button>
     <button (click)="remove()">Remove</button>
     <button (click)="swap()">Swap</button>
-    <button>Hide All Even</button>
+    <div>
+    <input type="checkbox" id="hide-event" name="hide-even" [(ngModel)]="hideEven" />
+    <label for="hide-event">Hide even</label>
+  </div>
     <input type="number" [ngModel]="radius()" (ngModelChange)="radius.set($event)">
     @for (c of circles(); track c.id; let i = $index) {
       <input type="color" [ngModel]="c.color" (ngModelChange)="setColor($event, i)">
@@ -20,7 +23,7 @@ import { Vector } from './ro-canvas';
 
     <ro-canvas style="display: block;">
       <ro-canvas-layer>
-        @for (c of circles(); track c.id; let i = $index) {
+        @for (c of circlesView(); track c.id; let i = $index) {
           <ro-canvas-composite [center]="c.c" [radius]="radius()" [color]="c.color"></ro-canvas-composite>
         }
       </ro-canvas-layer>
@@ -35,6 +38,8 @@ export class AppComponent {
   counter = 0;
   color = signal<string>('#aabbcc');
 
+  hideEven = signal<boolean>(false);
+
   circles = signal<{ id: number, c: Vector, color: string }[]>([{
     id: this.counter++,
     c: [10, 10],
@@ -45,11 +50,18 @@ export class AppComponent {
     color: '#336699'
   }])
 
+  circlesView = computed(() => {
+    if (this.hideEven()) {
+      return this.circles().filter(((x, i) => i % 2 !== 0))
+    }
+    return this.circles();
+  })
+
   add() {
     this.circles.update((v) => {
       const last = v.at(-1);
       return [...v, {
-        c: [last?.c[0] ?? 42 + 1, last?.c[1] ?? 69 + 1].map(x => x + 10) as any,
+        c: [last?.c[0] ?? 42 + 1, last?.c[1] ?? 69 + 1].map(x => x + 30) as any,
         id: this.counter++,
         color: last?.color ?? '#000000'
       }]
