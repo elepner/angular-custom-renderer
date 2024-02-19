@@ -40,13 +40,15 @@ export class CanvasLayerComponent {
 export class CircleComponent {
   center = input<Vector>([0, 0]);
   radius = input(42);
-
+  color = input<string>();
   circleRef = new Path.Circle(new Point(this.center()[0], this.center()[1]), this.radius());
 
   circleRefSignal = computed(() => {
-    console.log('Signal with new R', this.radius());
     const result = new Path.Circle(new Point(this.center()[0], this.center()[1]), this.radius());
-    //result.strokeColor = 'black' as any;
+    result.strokeColor = this.color() as any;
+    result.data = {
+      color: this.color()
+    }
     return result;
   })
 
@@ -58,11 +60,11 @@ export class CircleComponent {
       r.updateItem(this.circleRef);
       effect(() => {
         this.counter += 0.01
-        const foo = this.circleRefSignal();
-        foo.strokeColor = new Color(0.5, 0.1, this.counter);
-
-        this.circleRef.replaceWith(foo);
-        this.circleRef = foo;
+        const toReplace = this.circleRefSignal();
+        // toReplace.strokeColor = new Color(this.color() as any);
+        // console.log('Color to replace:', toReplace.strokeColor, this.color());
+        this.circleRef.replaceWith(toReplace);
+        this.circleRef = toReplace;
       })
     } else {
       throw new Error('It is not circle renderer');
@@ -79,13 +81,14 @@ export class CircleComponent {
   imports: [CircleComponent],
   template: `
     @for (c of circles(); track $index) {
-      <ro-canvas-circle [center]="c.c" [radius]="c.r"></ro-canvas-circle>
+      <ro-canvas-circle [center]="c.c" [radius]="c.r" [color]="color()"></ro-canvas-circle>
     }
   `
 })
 export class CompositeComponent {
   center = input<Vector>([0, 0]);
   radius = input<number>(0);
+  color = input<string>('');
   deltas = [
     [-10, -10],
     [10, 10]

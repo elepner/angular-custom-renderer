@@ -59,9 +59,6 @@ export class CustomRenderer<T> extends Renderer2 {
       const parentAttachedPaperElement = parent.attachedPaperElement as AttachedPaperElement<any>
       while (true) {
         if (!current) {
-          if (!newChild.attachedPaperElement) {
-            debugger;
-          }
           parentAttachedPaperElement.renderer.insertPaperElement(parent.attachedPaperElement, newChild.attachedPaperElement, null);
           break;
         }
@@ -77,6 +74,10 @@ export class CustomRenderer<T> extends Renderer2 {
   }
   removeChild(parent: any, oldChild: any, isHostElement?: boolean | undefined): void {
     this.log('Calling for removeChild method', parent, oldChild, isHostElement);
+    const parentTagName: string = parent.tagName;
+    if (parentTagName.startsWith('RO-CANVAS')) {
+      oldChild.attachedPaperElement.element.remove();
+    }
     return this.domRenderer.removeChild(parent, oldChild, isHostElement);
   }
   selectRootElement(selectorOrNode: any, preserveContent?: boolean | undefined) {
@@ -137,6 +138,7 @@ export class CustomRenderer<T> extends Renderer2 {
   insertPaperElement(parent: AttachedPaperElement<T>, newChild: AttachedPaperElement<any>, refChild: AttachedPaperElement<any> | null) {
     throw new Error('Implement me');
   }
+
 
   protected log(...args: any[]) {
     console.log(`${this.tag}:${this.id},`, ...args);

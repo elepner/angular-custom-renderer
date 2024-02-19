@@ -11,13 +11,17 @@ import { Vector } from './ro-canvas';
     <button (click)="swap()">Swap</button>
     <button>Hide All Even</button>
     <input type="number" [ngModel]="radius()" (ngModelChange)="radius.set($event)">
-    {{centers() | json}}
+    @for (c of circles(); track c.id; let i = $index) {
+      <input type="color" [ngModel]="c.color" (ngModelChange)="setColor($event, i)">
+    }
+
+    {{circles() | json}}
 
 
     <ro-canvas style="display: block;">
       <ro-canvas-layer>
-        @for (c of centers(); track c.id) {
-          <ro-canvas-composite [center]="c.c" [radius]="radius()"></ro-canvas-composite>
+        @for (c of circles(); track c.id; let i = $index) {
+          <ro-canvas-composite [center]="c.c" [radius]="radius()" [color]="c.color"></ro-canvas-composite>
         }
       </ro-canvas-layer>
     </ro-canvas>
@@ -29,30 +33,48 @@ export class AppComponent {
   radius = signal<number>(10);
 
   counter = 0;
+  color = signal<string>('#aabbcc');
 
-  centers = signal<{ id: number, c: Vector }[]>([{
+  circles = signal<{ id: number, c: Vector, color: string }[]>([{
     id: this.counter++,
-    c: [42, 69]
+    c: [42, 69],
+    color: ''
+  }, {
+    id: this.counter++,
+    c: [50, 10],
+    color: '#336699'
   }])
 
   add() {
-    this.centers.update((v) => {
+    this.circles.update((v) => {
       const last = v.at(-1);
       return [...v, {
         c: [last?.c[0] ?? 42 + 1, last?.c[1] ?? 69 + 1].map(x => x + 10) as any,
-        id: this.counter++
+        id: this.counter++,
+        color: last?.color ?? '#000000'
       }]
     })
   }
 
+  setColor(newColor: string, index: number) {
+    this.circles.update((res) => {
+      res = [...res];
+      res[index] = {
+        ...res[index],
+        color: newColor
+      }
+      return res;
+    })
+  }
+
   remove() {
-    this.centers.update((v) => {
+    this.circles.update((v) => {
       return v.slice(1);
     })
   }
 
   swap() {
-    this.centers.update((v) => {
+    this.circles.update((v) => {
       const copy = [...v];
       const tmp = copy[0];
       copy[0] = copy.at(-1)!;
